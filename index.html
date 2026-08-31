@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8<!-- Tell phones to render at real device width, no weird zooming -->
+<meta charset="UTF-8">
+
+<!-- Tell phones to render at real device width, no weird zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- Home-screen app mode: opens fullscreen, no browser address bar -->
@@ -9,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pomodoro">
-<!-- Match the phone's UI to our theme -->
+<!-- Match the phone's UI color to our theme -->
 <meta name="theme-color" content="#141210">
 
 <!-- App icon, drawn in code: orange square with a tomato -->
@@ -64,7 +66,7 @@
     stroke-linecap: butt; transition: stroke-dashoffset 0.5s linear;
   }
   #time {
-    position: absolute;: 46%; left: 50%;
+    position: absolute; top: 46%; left: 50%;
     transform: translate(-50%, -50%);
     font-size: 46px; font-variant-numeric: tabular-nums;
     color: #d97757;
@@ -106,10 +108,20 @@
   #laps div { padding: 3px 0; }
   #laps .split { color: #d97757; font-weight: 600; }
 
-  /* Small screens: nudge things inward so nothing touches the edges */
-  @media (max-width: 340px) {
+  /* Small screens: enlarge ring, digits and controls for phones */
+  @media (max-width: 480px) {
+    h1 { margin-top: 24px; }
     .modes { gap: 10px; }
-    .controls { gap 14px; }
+    .mode { padding: 12px 20px; font-size: 17px; }
+    .settings { gap: 14px; padding: 0 12px; }
+    .ring-wrap { width: 300px; height: 300px; }
+    #time { font-size: 56px; }
+    #phase { font-size: 16px; }
+    button { padding: 16px 48px; font-size: 19px; }
+    .session-btn { font-size: 17px; padding: 14px 34px; }
+  }
+  @media (max-width: 340px) {
+    .controls { gap: 14px; }
   }
 </style>
 </head>
@@ -126,14 +138,14 @@
       <input type="number" id="focusMin" min="0" max="180" value="25"> min
       <input type="number" id="focusSec" min="0" max="59" value="0"> sec
     </div>
-     class="setting">
+    <div class="setting">
       <label for="breakMin">Break</label>
       <input type="number" id="breakMin" min="0" max="60" value="5"> min
-      <input type="number" id="breakSec" min="0 max="59" value="0"> sec
+      <input type="number" id="breakSec" min="0" max="59" value="0"> sec
     </div>
   </div>
   <div class="ring-wrap" id="ringwrap">
-    <svg width="260" height="260">
+    <svg id="ringsvg" width="260" height="260" viewBox="0 0 260 260" style="width:100%;height:100%">
       <circle class="track" cx="130" cy="130" r="118"/>
       <circle class="track" cx="130" cy="130" r="106"/>
       <circle class="fill" id="fill" cx="130" cy="130" r="112"/>
@@ -165,7 +177,7 @@
   var sessions = 0, laps = 0;
   var phaseFresh = true;                  // true = next Start (re)begins the phase from full time
   var stopwatchStart = null;
-  stopwatchElapsed = 0;
+  var stopwatchElapsed = 0;
   var lastLapMs = 0;
 
   function secsFromInputs(prefix) {
@@ -184,18 +196,14 @@
     try {
       var f = parseInt(localStorage.getItem('pomo_focus_sec'), 10);
       var b = parseInt(localStorage.getItem('pomo_break_sec'), 10);
-      // NOTE: we deliberately keep the "> 0" check here (unlike applyDurations,
-      // which now allows 0). If a saved 0 were loaded on refresh, a user who
-      // zeroed both fields would come back to a dead, silent timer with no
-      // explanation. Falling back to defaults on reload is the friendlier
-      // failure mode; the 0 they saved only affects the visit.
+      // A saved 0 falls back to defaults on load, so a returning user never
+      // sees a dead, silent timer. The 0 they saved only affects this visit.
       if (f > 0) focusSecs = f;
       if (b > 0) breakSecs = b;
 
-      // Session count: unlike durations, a saved 0 is meaningful here
-      // (the user completed sprints, then reset). So we accept any saved
-      // number >= 0; only "nothing saved at all" keeps the default of 0.
-      var savedSessions parseInt(localStorage.getItem('pomo_sessions'), 10);
+      // Session count: a saved 0 is meaningful (user deliberately reset),
+      // so we accept any saved number >= 0.
+      var savedSessions = parseInt(localStorage.getItem('pomo_sessions'), 10);
       if (!isNaN(savedSessions) && savedSessions >= 0) sessions = savedSessions;
     } catch (e) { /* localStorage unavailable — keep defaults */ }
     splitToInputs('focus', focusSecs);
@@ -215,8 +223,7 @@
   }
 
   // Edits apply IMMEDIATELY — including to a phase that is currently running
-  // (that phase restarts with the new duration). 0 is now a legal value and
-  // meansskip this phase".
+  // (that phase restarts with the new duration). 0 means "skip this phase".
   function applyDurations() {
     var f = secsFromInputs('focus');
     var b = secsFromInputs('break');
@@ -226,7 +233,7 @@
     }
     if (b >= 0 && b <= 60 * 60) {
       breakSecs = b;
-      try { localStorage.setItem('pomo_break', b); } catch (e) {}
+      try { localStorage.setItem('pomo_break_sec', b); } catch (e) {}
     }
     splitToInputs('focus', focusSecs);   // echo back sanitized values
     splitToInputs('break', breakSecs);
@@ -249,7 +256,7 @@
 
   // Find the next phase to run after `from`. Skips zero-length phases.
   // Returns 'focus'/'break', or null if BOTH durations are 0.
- function nextPhase(from) {
+  function nextPhase(from) {
     if (from === 'focus' && breakSecs > 0) return 'break';
     if (from === 'break' && focusSecs > 0) return 'focus';
     if (from === 'focus' && focusSecs > 0) return 'focus'; // break is 0: chain sprints
@@ -284,10 +291,10 @@
   }
 
   // Click the "Sessions completed" button to zero the counter.
-  // The zero is now saved too, so it survives refresh and close.
+  // The zero is saved too, so it survives refresh and close.
   function resetSessions() {
     if (sessions === 0) return;   // nothing to reset — no nagging dialog
-    var ok confirm('Reset session count to zero?');
+    var ok = confirm('Reset session count to zero?');
     if (ok) setSessions(0);
   }
 
@@ -319,7 +326,7 @@
   function setMode(name) {
     var wasRunning = !!timer;
     if (timer) { clearInterval(timer); timer = null; }
- mode = name;
+    mode = name;
     setTab(name);
     if (mode === 'stopwatch') {
       resetStopwatch();
@@ -410,7 +417,7 @@
     var m = String(Math.floor(remaining / 60)).padStart(2, '0');
     var s = String(remaining % 60).padStart(2, '0');
     document.getElementById('time').textContent = m + ':' + s;
-    setFill(total > 0 ? ( - remaining) / total : 0);
+    setFill(total > 0 ? (total - remaining) / total : 0);
   }
 
   function getStopwatchMs() {
