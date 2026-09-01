@@ -169,14 +169,14 @@
   @media (max-width: 480px) {
     h1 { margin-top: 24px; }
     .modes { gap: 10px; }
-    .mode { padding: 12px 18px; font-size: 16px; white-space: nowrap; flex: 0 0 auto; }
+        .mode { padding: 12px 18px; font-size: 16px; white-space: nowrap; flex: 0 0 auto; }
 
     .settings { gap: 14px; padding: 0 12px; }
     .ring-wrap { width: 290px; height: 290px; }
     #time { font-size: 54px; }
     #phase { font-size: 16px; }
     .controls { gap: 12px; margin-top: 28px; max-width: 100%; padding: 0 10px; flex-wrap: wrap; justify-content: center; }
-        button { padding: 14px 20px; font-size: 16px; flex: 0 1 auto; min-width: 0; }
+    button { padding: 14px 20px; font-size: 16px; flex: 0 1 auto; min-width: 0; }
     .session-btn { font-size: 16px; padding: 13px 28px; margin-top: 22px; }
     #palette { padding: 8px 4px; gap: 8px; }
     .swatch { width: 22px; height: 22px; }
@@ -275,6 +275,23 @@
   let musicNodes = null;                  // currently playing break-music nodes
   let lastWholeSec = null;                // for tick sound de-duplication
 
+  // iOS audio unlock: first user tap enables both <audio> and WebAudio
+  (function () {
+    function unlock() {
+      const bm = document.getElementById('breakmusic');
+      if (bm) {
+        const p = bm.play();
+        if (p) p.then(function () { bm.pause(); bm.currentTime = 0; })
+                .catch(function () {});
+      }
+      const ctx = getCtx();
+      if (ctx && ctx.state === 'suspended') ctx.resume();
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('touchstart', unlock);
+    }
+    document.addEventListener('click', unlock);
+    document.addEventListener('touchstart', unlock);
+  })();
   // ============================================================
   //  AUDIO — single shared context, created on first user gesture
   // ============================================================
