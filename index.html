@@ -201,13 +201,11 @@
   .pomodoro-info {
     position: relative;
     display: inline-block;
-    font-size: 22px;
+    font-size:22px;
     cursor: help;
     user-select: none;
     margin: 18px 0 10px;
-    position: relative;
     z-index: 5;
-
   }
   .pomodoro-tooltip {
     position: absolute;
@@ -217,9 +215,9 @@
     width: 280px;
     max-height: 60vh;
     overflow-y: auto;
-    background: var(--surface);
-    color: var(--text, #eee);
-    border: 1px solid var(--border);
+    background: #222;
+    color: #eee;
+    border: 1px solid #555;
     border-radius: 12px;
     padding: 12px 14px;
     font-size: 13px;
@@ -233,7 +231,7 @@
   }
   .pomodoro-info:hover .pomodoro-tooltip,
   .pomodoro-info:focus .pomodoro-tooltip {
-    opacity: ;
+    opacity: 1;
     visibility: visible;
   }
 
