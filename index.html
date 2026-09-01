@@ -169,7 +169,7 @@
   @media (max-width: 480px) {
     h1 { margin-top: 24px; }
     .modes { gap: 10px; }
-    .mode { padding: 12px 18px; font-size: 16px; }
+    .mode { padding: 12px 12px; font-size: 15px; white-space: nowrap; }
     .settings { gap: 14px; padding: 0 12px; }
     .ring-wrap { width: 290px; height: 290px; }
     #time { font-size: 54px; }
@@ -196,7 +196,15 @@
     }
     .swatch { width: 24px; height: 24px; }
   }
-
+  /* Keep digits facing the viewer while ring spins */
+  #ringwrap.spinning #time,
+  #ringwrap.spinning #phase {
+    animation: counterspin 6s linear infinite;
+  }
+  @keyframes counterspin {
+    from { transform: rotateY(0deg); }
+    to   { transform: rotateY(-360deg); }
+  }
 
 </style>
 
@@ -445,11 +453,16 @@
   }
 
   function setPhaseLabel(name) {
+
     document.getElementById('phase').textContent =
       (name === 'focus') ? 'FOCUS' : 'BREAK';
   }
 
   function setTab(name) {
+    if (name !== 'break') {
+      const bm = document.getElementById('breakmusic');
+      if (bm) { bm.pause(); bm.currentTime = 0; }
+    }
     ['focus', 'break', 'stopwatch'].forEach(m =>
       document.getElementById('tab-' + m).classList.toggle('active', m === name));
     const isStopwatch = (name === 'stopwatch');
