@@ -1,116 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" data-accent="claude">
 <head>
 <meta charset="UTF-8">
-
-<!-- Tell phones to render at real device width, no weird zooming -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Home-screen app mode: opens fullscreen, no browser address bar -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pomodoro">
-<!-- Match the phone's UI color to our theme -->
-<meta name="theme-color" content="#141210">
+<meta name="theme-color" content="#141210" id="themeColorMeta">
 
-<!-- App icon, drawn in code: orange square with a tomato -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23141210'/%3E%3Ccircle cx='50' cy='58' r='28' fill='%23d97757'/%3E%3Cpath d='M50 30 q-3 -10 8 -14 q-1 8 -8 14 z' fill='%23d97757'/%3E%3Cpath d='M38 26 q12 -6 24 0 l-5 8 q-7 -3 -14 0 z' fill='%23d97757'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23141210'/%3E%3Ccircle cx='50' cy='58' r='28' fill='%23d97757'/%3E%3Cpath d='M50 30 q-3 -10 8 -14 q-1 8 -8 14 z' fill='%23d97757'/%3E%3Cpath d='M38 26 q12 -6 24 0 l-5 8 q-7 -3 -14 0 z' fill='%23d97757'/%3E%3C/svg%3E">
 
 <title>Pomodoro + Stopwatch</title>
 <style>
+  /* ---------- Theme variables ---------- */
+  :root[data-theme="dark"] {
+    --bg: #141210; --fg: #e8e0d5; --muted: #7a7065;
+    --surface: #26221e; --surface2: #362f28; --border: #3a332c;
+  }
+  :root[data-theme="light"] {
+    --bg: #faf9f5; --fg: #3d3929; --muted: #8f8779;
+    --surface: #eeece2; --surface2: #e3e0d3; --border: #d9d5c6;
+  }
+  /* ---------- Accent palettes (swatches set data-accent) ---------- */
+  :root[data-accent="claude"]   { --accent: #d97757; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="claude"] { --accent-fg: #141210; }
+  :root[data-accent="gemini"]   { --accent: #1a73e8; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="gemini"] { --bg: #e8f0fe; --fg: #174ea6; --muted: #6f86a8; --surface: #dbe7fb; --surface2: #ccdcf8; --border: #c2d4f0; }
+  :root[data-accent="gemini"][data-theme="dark"] { --bg: #0f1620; --fg: #dce7f5; --muted: #6b7f99; --surface: #1b2634; --surface2: #26364a; --border: #31435a; --accent: #8ab4f8; --accent-fg: #0f1620; }
+  :root[data-accent="sage"]     { --accent: #4a9a6f; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="sage"] { --bg: #f2f6f1; --fg: #2e4636; --muted: #7d8f83; --surface: #e3ece2; --surface2: #d5e3d3; --border: #c6d8c4; }
+  :root[data-accent="sage"][data-theme="dark"] { --bg: #101613; --fg: #dde8de; --muted: #6f8274; --surface: #1a231d; --surface2: #25332a; --border: #2f4034; }
+  :root[data-accent="plum"]     { --accent: #9d6bb5; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="plum"] { --bg: #f6f2f8; --fg: #463254; --muted: #8b7f94; --surface: #ece4f1; --surface2: #e0d4e9; --border: #d3c6de; }
+  :root[data-accent="plum"][data-theme="dark"]  { --bg: #140f18; --fg: #e6dcea; --muted: #7d6f88; --surface: #201827; --surface2: #2c2137; --border: #382a46; }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     min-height: 100vh; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    background: #141210; color: #e8e0d5;
+    background: var(--bg); color: var(--fg);
     font-family: 'Segoe UI', system-ui, sans-serif;
+    transition: background 0.25s, color 0.25s;
   }
-  h1 { font-weight: 300; letter-spacing: 5px; color: #d97757; margin-bottom: 10px; }
+  h1 { font-weight: 300; letter-spacing: 5px; color: var(--accent); margin-bottom: 10px; }
+
+  /* ---------- Top bar: theme toggle ---------- */
+  #themeToggle {
+    position: fixed; top: 14px; right: 14px; z-index: 10;
+    background: var(--surface); color: var(--accent);
+    border: 1px solid var(--border); border-radius: 50%;
+    width: 42px; height: 42px; font-size: 19px; padding: 0;
+    cursor: pointer; transition: background 0.15s, transform 0.15s;
+  }
+  #themeToggle:hover { background: var(--surface2); transform: scale(1.08); }
+
+  /* ---------- Palette swatches (fixed to left edge) ---------- */
+  #palette {
+    position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 10px; z-index: 10;
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: none; border-radius: 0 14px 14px 0;
+    padding: 10px 6px;
+  }
+  .swatch {
+    width: 26px; height: 26px; border-radius: 8px; cursor: pointer;
+    border: 2px solid transparent; padding: 0;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.active { border-color: var(--fg); }
+  /* Each swatch is painted half light-theme color, half dark-theme color */
+  .sw-claude  { background: linear-gradient(135deg, #d97757 50%, #141210 50%); }
+  .sw-gemini  { background: linear-gradient(135deg, #1a73e8 50%, #0f1620 50%); }
+  .sw-sage    { background: linear-gradient(135deg, #4a9a6f 50%, #101613 50%); }
+  .sw-plum    { background: linear-gradient(135deg, #9d6bb5 50%, #140f18 50%); }
 
   .modes { display: flex; gap: 20px; margin: 18px 0 14px; }
   .mode {
     padding: 10px 24px; border-radius: 20px; cursor: pointer;
-    background: #26221e; color: #d97757;
-    font-size: 16px; font-weight: 500;
+    background: var(--surface); color: var(--accent);
+    font-size: 16px; font-weight: 500; border: none; font-family: inherit;
     transition: background 0.15s, color 0.15s;
   }
-  .mode.active { background: #d97757; color: #141210; }
+  .mode.active { background: var(--accent); color: var(--accent-fg); }
 
   .settings {
     display: flex; gap: 22px; align-items: center;
-    margin-bottom: 20px; color: #7a7065; font-size: 14px;
+    margin-bottom: 20px; color: var(--muted); font-size: 14px;
     flex-wrap: wrap; justify-content: center;
   }
   .setting { display: flex; align-items: center; gap: 6px; }
-  .setting input {
-    width: 52px; background: #26221e; border: 1px solid #3a332c;
-    border-radius: 8px; color: #d97757; font-size: 16px;
+  .setting input[type="number"] {
+    width: 52px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--accent); font-size: 16px;
     font-weight: 600; padding: 6px 4px; text-align: center;
     -moz-appearance: textfield;
   }
   .setting input::-webkit-outer-spin-button,
   .setting input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .setting input:focus { outline: none; border-color: #d97757; }
+  .setting input:focus { outline: none; border-color: var(--accent); }
 
-  .ring-wrap { position: relative; width: 260px; height: 260px; }
+  /* Sound toggles (tick + break music) */
+  .sound-toggles { display: flex; gap: 18px; align-items: center; margin-bottom: 16px; color: var(--muted); font-size: 14px; }
+  .tog { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+  .tog input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+
+.ring-wrap.spinning {
+  animation: spinNS 10s linear infinite;
+}
+@keyframes spinNS {
+  from { transform: perspective(700px) rotateY(0deg); }
+  to   { transform: perspective(700px) rotateY(360deg); }
+}
+
+.ring-wrap { position: relative; width: 260px; height: 260px; }
+
   .ring-wrap.flash { animation: flash 0.5s ease-in-out 4; }
-  @keyframes flash {
-    50% { filter: drop-shadow(0 0 22px #d97757); }
-  }
+  @keyframes flash { 50% { filter: drop-shadow(0 0 22px var(--accent)); } }
   svg { transform: rotate(-90deg); display: block; }
-  .track { fill: none; stroke: #d97757; stroke-width: 2; opacity: 0.45; }
+  .track { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0.45; }
   .fill {
-    fill: none; stroke: #d97757; stroke-width: 12;
+    fill: none; stroke: var(--accent); stroke-width: 12;
     stroke-linecap: butt; transition: stroke-dashoffset 0.5s linear;
   }
   #time {
     position: absolute; top: 46%; left: 50%;
     transform: translate(-50%, -50%);
     font-size: 46px; font-variant-numeric: tabular-nums;
-    color: #d97757;
+    color: var(--accent);
   }
   #phase {
     position: absolute; top: 66%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 14px; letter-spacing: 3px; color: #7a7065;
+    font-size: 14px; letter-spacing: 3px; color: var(--muted);
   }
 
   .controls { display: flex; gap: 24px; margin-top: 34px; }
   button {
-    background: #d97757; color: #141210; border: none;
+    background: var(--accent); color: var(--accent-fg); border: none;
     padding: 14px 44px; border-radius: 26px; font-size: 18px;
-    font-weight: 600; cursor: pointer;
+    font-family: inherit; font-weight: 600; cursor: pointer;
     transition: transform 0.15s, background 0.15s;
   }
-  button:hover { background: #e2907a; transform: scale(1.05); }
-  button.secondary { background: #26221e; color: #d97757; }
-  button.secondary:hover { background: #362f28; transform: scale(1.05); }
+  button:hover { transform: scale(1.05); filter: brightness(1.1); }
+  button.secondary { background: var(--surface); color: var(--accent); }
+  button.secondary:hover { background: var(--surface2); }
 
-  /* Session counter as a button — styled like the secondary buttons
-     so the family resemblance is obvious. */
   .session-btn {
-    background: #26221e; color: #d97757;
-    border: 1px solid #3a332c; border-radius: 26px;
+    background: var(--surface); color: var(--accent);
+    border: 1px solid var(--border); border-radius: 26px;
     padding: 12px 32px; margin-top: 26px;
     font-family: inherit; font-size: 16px; font-weight: 500;
     letter-spacing: 0.5px; cursor: pointer; user-select: none;
     transition: background 0.15s, transform 0.15s;
   }
-  .session-btn:hover { background: #362f28; transform: scale(1.05); }
+  .session-btn:hover { background: var(--surface2); transform: scale(1.05); }
   .session-btn .num { font-weight: 700; font-size: 19px; }
 
   #laps {
-    color: #7a7065; font-size: 15px; max-height: 130px;
+    color: var(--muted); font-size: 15px; max-height: 130px;
     overflow-y: auto; text-align: center; margin-top: 8px;
   }
   #laps div { padding: 3px 0; }
-  #laps .split { color: #d97757; font-weight: 600; }
+  #laps .split { color: var(--accent); font-weight: 600; }
 
-  /* Small screens: enlarge ring and digits; keep buttons inside the screen.
-     Three buttons (Start/Lap/Reset on Stopwatch) must fit side by side,
-     so padding stays moderate and the row can wrap if needed. */
   @media (max-width: 480px) {
     h1 { margin-top: 24px; }
     .modes { gap: 10px; }
@@ -122,16 +177,26 @@
     .controls { gap: 12px; margin-top: 28px; max-width: 100%; padding: 0 10px; flex-wrap: wrap; justify-content: center; }
     button { padding: 14px 26px; font-size: 17px; flex: 1 1 0; min-width: 0; }
     .session-btn { font-size: 16px; padding: 13px 28px; margin-top: 22px; }
+    #palette { padding: 8px 4px; gap: 8px; }
+    .swatch { width: 22px; height: 22px; }
   }
-
 </style>
 </head>
 <body>
+  <button id="themeToggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
+
+  <div id="palette" title="Color palettes">
+    <button class="swatch sw-claude" data-accent="claude"  onclick="setAccent('claude')"  aria-label="Claude palette"></button>
+    <button class="swatch sw-gemini" data-accent="gemini"  onclick="setAccent('gemini')"  aria-label="Gemini blue palette"></button>
+    <button class="swatch sw-sage"   data-accent="sage"    onclick="setAccent('sage')"    aria-label="Sage palette"></button>
+    <button class="swatch sw-plum"   data-accent="plum"    onclick="setAccent('plum')"    aria-label="Plum palette"></button>
+  </div>
+
   <h1>POMODORO</h1>
   <div class="modes">
-    <span class="mode active" id="tab-focus" onclick="setMode('focus')">Focus</span>
-    <span class="mode" id="tab-break" onclick="setMode('break')">Break</span>
-    <span class="mode" id="tab-stopwatch" onclick="setMode('stopwatch')">Stopwatch</span>
+    <button class="mode active" id="tab-focus" onclick="setMode('focus')">Focus</button>
+    <button class="mode" id="tab-break" onclick="setMode('break')">Break</button>
+    <button class="mode" id="tab-stopwatch" onclick="setMode('stopwatch')">Stopwatch</button>
   </div>
   <div class="settings">
     <div class="setting">
@@ -145,8 +210,12 @@
       <input type="number" id="breakSec" min="0" max="59" value="0"> sec
     </div>
   </div>
+  <div class="sound-toggles">
+    <label class="tog"><input type="checkbox" id="tickToggle" checked> Tick sound</label>
+    <label class="tog"><input type="checkbox" id="musicToggle" checked> Break music</label>
+  </div>
   <div class="ring-wrap" id="ringwrap">
-    <svg id="ringsvg" width="260" height="260" viewBox="0 0 260 260" style="width:100%;height:100%">
+    <svg width="260" height="260" viewBox="0 0 260 260" style="width:100%;height:100%">
       <circle class="track" cx="130" cy="130" r="118"/>
       <circle class="track" cx="130" cy="130" r="106"/>
       <circle class="fill" id="fill" cx="130" cy="130" r="112"/>
@@ -164,26 +233,44 @@
     Sessions completed: <span class="num" id="count">0</span>
   </div>
   <div id="laps"></div>
+  <audio id="breakmusic" src="break.mp3" loop preload="auto"></audio>
 
 <script>
-  var R_FILL = 112;
-  var LEN_FILL = 2 * Math.PI * R_FILL;
-  var fill = document.getElementById('fill');
+  const R_FILL = 112;
+  const LEN_FILL = 2 * Math.PI * R_FILL;
+  const fill = document.getElementById('fill');
   fill.style.strokeDasharray = LEN_FILL;
 
-  var mode = 'focus';                     // 'focus' | 'break' | 'stopwatch'
-  var focusSecs = 25 * 60;
-  var breakSecs = 5 * 60;
-  var total = focusSecs, remaining = total, timer = null;
-  var sessions = 0, laps = 0;
-  var phaseFresh = true;                  // true = next Start (re)begins the phase from full time
-  var stopwatchStart = null;
-  var stopwatchElapsed = 0;
-  var lastLapMs = 0;
+  let mode = 'focus';                     // 'focus' | 'break' | 'stopwatch'
+  let focusSecs = 25 * 60;
+  let breakSecs = 5 * 60;
+  let total = focusSecs, remaining = total, timer = null;
+  let sessions = 0, laps = 0;
+  let phaseFresh = true;                  // true = next Start (re)begins the phase from full time
+  let endAt = 0;                      // wall-clock target — drift-proof
+  let stopwatchStart = null;
+  let stopwatchElapsed = 0;
+  let lastLapMs = 0;
+  let audioCtx = null;                    // one shared AudioContext
+  let musicNodes = null;                  // currently playing break-music nodes
+  let lastWholeSec = null;                // for tick sound de-duplication
 
+  // ============================================================
+  //  AUDIO — single shared context, created on first user gesture
+  // ============================================================
+  function getCtx() {
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) { /* audio unavailable */ }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function unlockAudio() { getCtx(); }
   function secsFromInputs(prefix) {
-    var m = parseInt(document.getElementById(prefix + 'Min').value, 10) || 0;
-    var s = parseInt(document.getElementById(prefix + 'Sec').value, 10) || 0;
+    const m = parseInt(document.getElementById(prefix + 'Min').value, 10) || 0;
+    const s = parseInt(document.getElementById(prefix + 'Sec').value, 10) || 0;
     return m * 60 + s;
   }
 
@@ -192,19 +279,20 @@
     document.getElementById(prefix + 'Sec').value = secs % 60;
   }
 
-  // ---- load saved state (durations + session count), then wire inputs ----
-  (function loadDurations() {
+  // ---- theme + accent + saved state ----
+  (function loadPrefs() {
     try {
-      var f = parseInt(localStorage.getItem('pomo_focus_sec'), 10);
-      var b = parseInt(localStorage.getItem('pomo_break_sec'), 10);
-      // A saved 0 falls back to defaults on load, so a returning user never
-      // sees a dead, silent timer. The 0 they saved only affects this visit.
+      const t = localStorage.getItem('pomo_theme');
+      if (t === 'light' || t === 'dark') setTheme(t, false);
+      const a = localStorage.getItem('pomo_accent');
+      if (a) setAccent(a, false);
+
+      const f = parseInt(localStorage.getItem('pomo_focus_sec'), 10);
+      const b = parseInt(localStorage.getItem('pomo_break_sec'), 10);
       if (f > 0) focusSecs = f;
       if (b > 0) breakSecs = b;
 
-      // Session count: a saved 0 is meaningful (user deliberately reset),
-      // so we accept any saved number >= 0.
-      var savedSessions = parseInt(localStorage.getItem('pomo_sessions'), 10);
+      const savedSessions = parseInt(localStorage.getItem('pomo_sessions'), 10);
       if (!isNaN(savedSessions) && savedSessions >= 0) sessions = savedSessions;
     } catch (e) { /* localStorage unavailable — keep defaults */ }
     splitToInputs('focus', focusSecs);
@@ -213,21 +301,41 @@
     ['focusMin', 'focusSec', 'breakMin', 'breakSec'].forEach(function (id) {
       document.getElementById(id).addEventListener('change', applyDurations);
     });
+    markActiveSwatch();
   })();
 
-  // Central place to update the counter: touches the screen AND storage,
-  // so they can never drift apart.
+  function setTheme(t, save = true) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeToggle').textContent = (t === 'dark') ? '🌙' : '☀️';
+    document.getElementById('themeColorMeta').content = (t === 'dark') ? '#141210' : '#faf9f5';
+    if (save) { try { localStorage.setItem('pomo_theme', t); } catch (e) {} }
+  }
+  function toggleTheme() {
+    const cur = document.documentElement.getAttribute('data-theme');
+    setTheme(cur === 'dark' ? 'light' : 'dark');
+    unlockAudio(); // theme tap doubles as the user gesture for audio
+  }
+
+  function setAccent(name, save = true) {
+    document.documentElement.setAttribute('data-accent', name);
+    markActiveSwatch();
+    if (save) { try { localStorage.setItem('pomo_accent', name); } catch (e) {} }
+  }
+  function markActiveSwatch() {
+    const cur = document.documentElement.getAttribute('data-accent');
+    document.querySelectorAll('.swatch').forEach(s =>
+      s.classList.toggle('active', s.dataset.accent === cur));
+  }
+
   function setSessions(n) {
     sessions = n;
     document.getElementById('count').textContent = sessions;
     try { localStorage.setItem('pomo_sessions', sessions); } catch (e) {}
   }
 
-  // Edits apply IMMEDIATELY — including to a phase that is currently running
-  // (that phase restarts with the new duration). 0 means "skip this phase".
   function applyDurations() {
-    var f = secsFromInputs('focus');
-    var b = secsFromInputs('break');
+    const f = secsFromInputs('focus');
+    const b = secsFromInputs('break');
     if (f >= 0 && f <= 180 * 60) {
       focusSecs = f;
       try { localStorage.setItem('pomo_focus_sec', f); } catch (e) {}
@@ -236,67 +344,69 @@
       breakSecs = b;
       try { localStorage.setItem('pomo_break_sec', b); } catch (e) {}
     }
-    splitToInputs('focus', focusSecs);   // echo back sanitized values
+    splitToInputs('focus', focusSecs);
     splitToInputs('break', breakSecs);
 
     if (mode !== 'stopwatch') {
+      stopTimer();
       total = (mode === 'focus') ? focusSecs : breakSecs;
       remaining = total;
-      phaseFresh = true;                 // an edit restarts the phase from full
-      if (timer && total === 0) {
-        // The running phase was just set to 0: skip ahead immediately
-        // (or stop cleanly if nothing is left to run).
-        clearInterval(timer);
-        timer = null;
+      phaseFresh = true;
+      if (total === 0) {
         advancePhase();
       } else {
+        document.getElementById('btn').textContent = 'Start';
         render();
       }
     }
+
   }
 
-  // Find the next phase to run after `from`. Skips zero-length phases.
-  // Returns 'focus'/'break', or null if BOTH durations are 0.
   function nextPhase(from) {
     if (from === 'focus' && breakSecs > 0) return 'break';
     if (from === 'break' && focusSecs > 0) return 'focus';
-    if (from === 'focus' && focusSecs > 0) return 'focus'; // break is 0: chain sprints
-    if (from === 'break' && breakSecs > 0) return 'break'; // focus is 0: chain breaks
+    if (from === 'focus' && focusSecs > 0) return 'focus';
+    if (from === 'break' && breakSecs > 0) return 'break';
     return null;
   }
 
-  // Called when a phase finishes. Advances to the next runnable phase,
-  // or stops the timer cleanly if both durations are 0.
   function advancePhase() {
-    var finished = mode;
-    var next = nextPhase(finished);
+    const finished = mode;
+    const next = nextPhase(finished);
 
-    if (finished === 'focus') {
-      setSessions(sessions + 1);     // counts FOCUS completions only
-    }
+    if (finished === 'focus') setSessions(sessions + 1);
 
     if (next === null) {
-      // Both phases are 0 — stop instead of looping/chime-spamming forever.
       document.getElementById('btn').textContent = 'Start';
+      setMusicOn(false);
       return;
     }
 
     mode = next;
     total = (mode === 'focus') ? focusSecs : breakSecs;
     remaining = total;
-    phaseFresh = false;              // new phase starts immediately, not on next Start
+    endAt = Date.now() + remaining * 1000;
+    phaseFresh = false;
+    const rw = document.getElementById('ringwrap');
+    rw.classList.remove('spinning');
+    if (mode === 'break') {
+      void rw.offsetWidth;
+      rw.classList.add('spinning');
+    }
+
     setTab(mode);
     setPhaseLabel(mode);
     render();
     startInterval(1000);
+    document.getElementById('btn').textContent = 'Pause';
+
+    // Break music: on during breaks, off during focus
+    setMusicOn(mode === 'break' && document.getElementById('musicToggle').checked);
   }
 
-  // Click the "Sessions completed" button to zero the counter.
-  // The zero is saved too, so it survives refresh and close.
   function resetSessions() {
-    if (sessions === 0) return;   // nothing to reset — no nagging dialog
-    var ok = confirm('Reset session count to zero?');
-    if (ok) setSessions(0);
+    if (sessions === 0) return;
+    if (confirm('Reset session count to zero?')) setSessions(0);
   }
 
   function setFill(fraction) {
@@ -309,65 +419,102 @@
     timer = setInterval(tick, ms);
   }
 
+  function stopTimer() {
+    if (timer) clearInterval(timer);
+    timer = null;
+  }
+
   function setPhaseLabel(name) {
     document.getElementById('phase').textContent =
       (name === 'focus') ? 'FOCUS' : 'BREAK';
   }
 
   function setTab(name) {
-    ['focus', 'break', 'stopwatch'].forEach(function (m) {
-      document.getElementById('tab-' + m).classList.toggle('active', m === name);
-    });
-    var isStopwatch = (name === 'stopwatch');
+    ['focus', 'break', 'stopwatch'].forEach(m =>
+      document.getElementById('tab-' + m).classList.toggle('active', m === name));
+    const isStopwatch = (name === 'stopwatch');
     document.getElementById('lapbtn').style.display = isStopwatch ? 'inline-block' : 'none';
     document.getElementById('resetbtn').style.display = isStopwatch ? 'inline-block' : 'none';
     document.getElementById('phase').style.display = isStopwatch ? 'none' : 'block';
   }
 
+  // ============================================================
+  //  MODE SWITCHING — countdown state is preserved per mode,
+  //  so an accidental stopwatch tap no longer loses a focus phase.
+  // ============================================================
+  const countdownState = { focus: null, break: null }; // saved per countdown mode
+
   function setMode(name) {
-    var wasRunning = !!timer;
-    if (timer) { clearInterval(timer); timer = null; }
+    unlockAudio();
+    const wasRunning = !!timer;
+    if (mode !== 'stopwatch' && timer) {
+      // pause + snapshot the running countdown
+      remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+      savePaused();
+    } else if (mode !== 'stopwatch') {
+      savePaused();
+    }
+    stopTimer();
     mode = name;
     setTab(name);
+    document.getElementById('ringwrap').classList.toggle('spinning', mode === 'break');
+
+
     if (mode === 'stopwatch') {
-      resetStopwatch();
       setFill(0);
       if (wasRunning) {
         stopwatchStart = Date.now();
         startInterval(250);
         document.getElementById('btn').textContent = 'Pause';
+      } else {
+        renderStopwatch();
       }
     } else {
+      const saved = countdownState[mode];
       laps = 0;
       document.getElementById('laps').innerHTML = '';
-      total = (mode === 'focus') ? focusSecs : breakSecs;
-      remaining = total;
-      phaseFresh = true;             // switching tabs always starts a clean phase
+      if (saved) {
+        // restore exactly where we left off
+        total = saved.total;
+        remaining = saved.pausedRemaining;
+        phaseFresh = saved.pausedRemaining === saved.total;
+      } else {
+        total = (mode === 'focus') ? focusSecs : breakSecs;
+        remaining = total;
+        phaseFresh = true;
+      }
       setPhaseLabel(mode);
-      setFill(0);
       render();
-      if (wasRunning) {
+      if (saved && saved.wasRunning) {
         startInterval(1000);
         document.getElementById('btn').textContent = 'Pause';
+        setMusicOn(mode === 'break' && document.getElementById('musicToggle').checked);
+      } else {
+        document.getElementById('btn').textContent = 'Start';
       }
     }
+    updateTitle();
+  }
+
+  function savePaused() {
+    countdownState[mode] = { total, remaining, wasRunning: false, pausedRemaining: remaining };
   }
 
   function toggle() {
+    unlockAudio();
     if (timer) {
       if (mode === 'stopwatch') stopwatchElapsed += Date.now() - stopwatchStart;
-      clearInterval(timer); timer = null;
+      else remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+      stopTimer();
       document.getElementById('btn').textContent = 'Start';
-      // phaseFresh stays false → next Start resumes, doesn't restart
+      updateTitle();
     } else {
       if (mode !== 'stopwatch') {
-        // Fresh phase: jump over a zero-duration current phase, reset the clock.
-        // Paused mid-phase: resume from where we left off.
         if (phaseFresh) {
-          var curSecs = (mode === 'focus') ? focusSecs : breakSecs;
+          const curSecs = (mode === 'focus') ? focusSecs : breakSecs;
           if (curSecs === 0) {
-            var target = nextPhase(mode);
-            if (target === null) return;  // both 0 — nothing to run
+            const target = nextPhase(mode);
+            if (target === null) return;
             if (target !== mode) {
               mode = target;
               setTab(mode);
@@ -378,18 +525,19 @@
           remaining = total;
           setFill(0);
           phaseFresh = false;
-          render();
         }
-        // else: resuming — keep total/remaining/fill exactly as they were
+        endAt = Date.now() + remaining * 1000; // drift-proof target
+        setMusicOn(mode === 'break' && document.getElementById('musicToggle').checked);
       }
       if (mode === 'stopwatch') stopwatchStart = Date.now();
       startInterval(mode === 'stopwatch' ? 250 : 1000);
       document.getElementById('btn').textContent = 'Pause';
+      render(); // show the time immediately, no 1s full-display lag
     }
   }
 
   function resetStopwatch() {
-    if (timer) { clearInterval(timer); timer = null; }
+    stopTimer();
     stopwatchStart = null;
     stopwatchElapsed = 0;
     lastLapMs = 0;
@@ -400,37 +548,48 @@
   }
 
   function tick() {
-    if (mode === 'stopwatch') {
-      renderStopwatch();
-      return;
-    }
-    remaining--;
+    if (mode === 'stopwatch') { renderStopwatch(); return; }
+    // Compute remaining from wall clock — immune to background-tab throttling
+    remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
+    playTick();
     render();
     if (remaining <= 0) {
-      clearInterval(timer);
-      timer = null;
+      stopTimer();
       notifyDone();
       advancePhase();
     }
   }
 
   function render() {
-    var m = String(Math.floor(remaining / 60)).padStart(2, '0');
-    var s = String(remaining % 60).padStart(2, '0');
+    const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
     document.getElementById('time').textContent = m + ':' + s;
     setFill(total > 0 ? (total - remaining) / total : 0);
+    updateTitle();
+  }
+
+  function updateTitle() {
+    if (mode === 'stopwatch') {
+      document.title = 'Pomodoro + Stopwatch';
+      return;
+    }
+    const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+    const s = String(remaining % 60).padStart(2, '0');
+    const running = timer ? '▶ ' : (phaseFresh ? '' : '⏸ ');
+    document.title = running + m + ':' + s + ' — ' +
+      (mode === 'focus' ? 'Focus' : 'Break');
   }
 
   function getStopwatchMs() {
-    var ms = stopwatchElapsed;
+    let ms = stopwatchElapsed;
     if (timer) ms += Date.now() - stopwatchStart;
     return ms;
   }
 
   function formatMs(ms) {
-    var cs = Math.floor(ms / 10) % 100;
-    var s = Math.floor(ms / 1000) % 60;
-    var m = Math.floor(ms / 60000);
+    const cs = Math.floor(ms / 10) % 100;
+    const s = Math.floor(ms / 1000) % 60;
+    const m = Math.floor(ms / 60000);
     return String(m).padStart(2, '0') + ':' +
            String(s).padStart(2, '0') + '.' +
            String(cs).padStart(2, '0');
@@ -441,40 +600,157 @@
   }
 
   function recordLap() {
-    var nowMs = getStopwatchMs();
-    var splitMs = nowMs - lastLapMs;
+    const nowMs = getStopwatchMs();
+    const splitMs = nowMs - lastLapMs;
     lastLapMs = nowMs;
     laps++;
-    var row = document.createElement('div');
+    const row = document.createElement('div');
     row.innerHTML = 'Lap ' + laps + ': <span class="split">' + formatMs(splitMs) +
                     '</span> &nbsp;(at ' + formatMs(nowMs) + ')';
     document.getElementById('laps').prepend(row);
   }
 
   function notifyDone() {
-    document.getElementById('ringwrap').classList.add('flash');
-    setTimeout(function () {
-      document.getElementById('ringwrap').classList.remove('flash');
-    }, 2100);
-    try {
-      var ctx = new (window.AudioContext || window.webkitAudioContext)();
-      [660, 880].forEach(function (freq, i) {
-        var osc = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        var t = ctx.currentTime + i * 0.25;
-        gain.gain.setValueAtTime(0.2, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-        osc.start(t);
-        osc.stop(t + 0.4);
-      });
-    } catch (e) { /* audio not available — flash is enough */ }
+    const rw = document.getElementById('ringwrap');
+    rw.classList.add('flash');
+    setTimeout(() => rw.classList.remove('flash'), 2100);
+    setMusicOn(false);
+    const ctx = getCtx();
+    if (!ctx) return;
+    [660, 880].forEach(function (freq, i) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      osc.connect(gain); gain.connect(ctx.destination);
+      const t = ctx.currentTime + i * 0.25;
+      gain.gain.setValueAtTime(0.2, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.start(t); osc.stop(t + 0.4);
+    });
   }
 
-  setMode('focus');
+  // ============================================================
+  //  TICK SOUND — a soft click each second during countdowns.
+  //  Gated on lastWholeSec so background throttling can't machine-gun.
+  // ============================================================
+  function playTick() {
+    if (!document.getElementById('tickToggle').checked) return;
+    if (remaining === lastWholeSec) return;
+    lastWholeSec = remaining;
+    const ctx = getCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 1200;
+    osc.connect(gain); gain.connect(ctx.destination);
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(0.04, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    osc.start(t); osc.stop(t + 0.05);
+  }
+  // ============================================================
+  //  BREAK MUSIC — gentle generated ambient pad (no audio files).
+  //  Two detuned sine oscillators with slow breathing gain —
+  //  loops forever until told to stop.
+  // ============================================================
+  function startMusic() {
+    const audio = document.getElementById('breakmusic');
+    if (audio && audio.src && !audio.dataset.failed) {
+      audio.volume = 0;
+      const p = audio.play();
+      if (p) {
+        p.then(function () {
+          musicNodes = [{ audio: audio }];
+          const fade = setInterval(function () {
+            if (!musicNodes) { clearInterval(fade); return; }
+            audio.volume = Math.min(1, audio.volume + 0.05);
+            if (audio.volume >= 1) clearInterval(fade);
+          }, 100);
+        }).catch(function () {
+          audio.dataset.failed = '1';
+          startMusic();
+        });
+        return;
+      }
+    }
+    const ctx = getCtx();
+    if (!ctx) return;
+    if (musicNodes) return;
+    musicNodes = [];
+    const now = ctx.currentTime;
+    [261.63, 329.63, 392.0, 493.88].forEach(function (freq, i) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq * (i % 2 ? 1.001 : 0.999);
+      osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.035, now + 4);
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 0.1 + i * 0.03;
+      lfoGain.gain.value = 0.015;
+      lfo.connect(lfoGain); lfoGain.connect(gain.gain);
+      lfo.start(now);
+      osc.start(now);
+      musicNodes.push({ osc, lfo, gain });
+    });
+  }
+
+  function stopMusic() {
+    if (!musicNodes) return;
+    if (musicNodes.length === 1 && musicNodes[0].audio) {
+      const a = musicNodes[0].audio;
+      const fade = setInterval(function () {
+        a.volume = Math.max(0, a.volume - 0.1);
+        if (a.volume <= 0) { clearInterval(fade); a.pause(); a.currentTime = 0; }
+      }, 80);
+      musicNodes = null;
+      return;
+    }
+    const ctx = getCtx();
+    const now = ctx ? ctx.currentTime : 0;
+    musicNodes.forEach(function (n) {
+      try {
+        n.gain.gain.cancelScheduledValues(now);
+        n.gain.gain.setValueAtTime(Math.max(n.gain.gain.value, 0.0001), now);
+        n.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+      } catch (e) {}
+      try { n.osc.stop(now + 0.7); n.lfo.stop(now + 0.7); } catch (e) {}
+    });
+    musicNodes = null;
+  }
+
+
+  function setMusicOn(on) {
+    if (on) startMusic(); else stopMusic();
+  }
+  // Persist tick/music toggle choices + react to break-music toggle live
+  (function loadTogglePrefs() {
+    try {
+      if (localStorage.getItem('pomo_tick') === '0')
+        document.getElementById('tickToggle').checked = false;
+      if (localStorage.getItem('pomo_music') === '0')
+        document.getElementById('musicToggle').checked = false;
+    } catch (e) {}
+    document.getElementById('tickToggle').addEventListener('change', function () {
+      try { localStorage.setItem('pomo_tick', this.checked ? '1' : '0'); } catch (e) {}
+    });
+    document.getElementById('musicToggle').addEventListener('change', function () {
+      try { localStorage.setItem('pomo_music', this.checked ? '1' : '0'); } catch (e) {}
+      if (mode === 'break' && timer) setMusicOn(this.checked);
+    });
+  })();
+
+  // ============================================================
+  //  INIT RENDER
+  // ============================================================
+  setFill(0);
+  render();
+  updateTitle();
 </script>
 </body>
 </html>
+
