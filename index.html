@@ -169,13 +169,14 @@
   @media (max-width: 480px) {
     h1 { margin-top: 24px; }
     .modes { gap: 10px; }
-    .mode { padding: 12px 12px; font-size: 15px; white-space: nowrap; }
+        .mode { padding: 12px 8px; font-size: 14px; white-space: nowrap; min-width: 0; }
+
     .settings { gap: 14px; padding: 0 12px; }
     .ring-wrap { width: 290px; height: 290px; }
     #time { font-size: 54px; }
     #phase { font-size: 16px; }
     .controls { gap: 12px; margin-top: 28px; max-width: 100%; padding: 0 10px; flex-wrap: wrap; justify-content: center; }
-    button { padding: 14px 26px; font-size: 17px; flex: 1 1 0; min-width: 0; }
+    button { padding: 14px 20px; font-size: 16px; flex: 1 1 0; min-width: 0; }
     .session-btn { font-size: 16px; padding: 13px 28px; margin-top: 22px; }
     #palette { padding: 8px 4px; gap: 8px; }
     .swatch { width: 22px; height: 22px; }
@@ -195,15 +196,6 @@
       padding: 8px 12px;
     }
     .swatch { width: 24px; height: 24px; }
-  }
-  /* Keep digits facing the viewer while ring spins */
-  #ringwrap.spinning #time,
-  #ringwrap.spinning #phase {
-    animation: counterspin 6s linear infinite;
-  }
-  @keyframes counterspin {
-    from { transform: rotateY(0deg); }
-    to   { transform: rotateY(-360deg); }
   }
 
 </style>
