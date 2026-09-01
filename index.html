@@ -197,6 +197,42 @@
     }
     .swatch { width: 24px; height: 24px; }
   }
+  /* Pomodoro story tooltip */
+  .pomodoro-info {
+    position: relative;
+    display: inline-block;
+    font-size: 22px;
+    cursor: help;
+    user-select: none;
+    margin: 18px 0 10px;
+  }
+  .pomodoro-tooltip {
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: var(--surface);
+    color: var(--text, #eee);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: left;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s;
+    z-index: 20;
+  }
+  .pomodoro-info:hover .pomodoro-tooltip,
+  .pomodoro-info:focus .pomodoro-tooltip {
+    opacity: ;
+    visibility: visible;
+  }
 
 </style>
 
@@ -793,6 +829,25 @@
   render();
   updateTitle();
 </script>
+    <div class="pomodoro-info" tabindex="0">🍅
+      <span class="pomodoro-tooltip">
+        <b>Pomodoro — The Tomato Timer 🍅</b><br><br>
+        "Pomodoro" is the Italian word for tomato. The technique was invented in the late 1980s by Francesco Cirillo, a university student in Italy who was struggling to focus on his studies.<br><br>
+        One day he grabbed a kitchen timer shaped like a tomato — the kind you twist to count down while cooking — and challenged himself to focus for just 10 minutes without distraction. It worked so well that he turned it into a full productivity system and named it after the tomato timer itself.<br><br>
+        <b>The technique in a nutshell</b><br>
+        1. Pick a task and set the timer for 25 minutes<br>
+        2. Work with full focus until the timer rings — no interruptions<br>
+        3. Take a 5-minute break (this is the "Break" mode in this app!)<br>
+        4. After four Pomodoros, take a longer break of 15–30 minutes<br>
+        5. Repeat<br><br>
+        The genius of it: 25 minutes feels short enough that your brain doesn't resist starting — the hard part of any task is often just beginning, and "I only have to do one Pomodoro" makes starting easy.<br><br>
+        <b>This app is a faithful implementation:</b><br>
+        • Focus mode = the 25-minute work sprint<br>
+        • Break mode (with the spinning ring and music!) = the 5-minute rest<br>
+        • The "Sessions completed" counter = tracking your Pomodoros
+      </span>
+    </div>
+
 </body>
 </html>
 
