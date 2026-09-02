@@ -595,16 +595,13 @@
   function savePaused() {
     countdownState[mode] = { total, remaining, wasRunning: false, pausedRemaining: remaining };
   }
-  function settleRing() {
+ function settleRing() {
     const rw = document.getElementById('ringwrap');
-    if (!rw.classList.contains('spinning')) return;
-    const anim = rw.getAnimations()[0];
-    if (!anim) { rw.classList.remove('spinning'); return; }
-    const dur = anim.effect.getTiming().duration;      // one full turn, in ms
-    const elapsed = anim.currentTime % dur;            // how far into the current turn we are
-    setTimeout(function() {
-      if (!timer) rw.classList.remove('spinning');     // only halt if still paused
-    }, dur - elapsed);                                 // exactly the leftover slice
+    if (rw.dataset.ringArmed) return;   // arm only once, ever
+    rw.dataset.ringArmed = 'yes';
+    rw.addEventListener('animationiteration', function() {
+      if (!timer) rw.classList.remove('spinning');
+    });
   }
 
   function toggle() {
