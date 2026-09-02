@@ -197,6 +197,22 @@
     }
     .swatch { width: 24px; height: 24px; }
   }
+  /* ---------- Digital clock (top-left corner) ---------- */
+  #clock {
+    position: fixed; top: 14px; left: 14px; z-index: 10;
+    background: var(--surface); color: var(--accent);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 8px 14px; font-size: 16px; font-weight: 600;
+    font-variant-numeric: tabular-nums; letter-spacing: 1px;
+    cursor: pointer; user-select: none; font-family: inherit;
+    transition: background 0.15s, transform 0.15s;
+  }
+  #clock:hover { background: var(--surface2); transform: scale(1.05); }
+
+  @media (max-width: 480px) {
+    #clock { top: 10px; left: 10px; padding: 6px 10px; font-size: 13px; }
+  }
+
   /* Pomodoro story tooltip */
   .pomodoro-info {
     position: relative;
@@ -237,7 +253,6 @@
 
 </style>
 
-</style>
 </head>
 <body>
   <button id="themeToggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
@@ -248,6 +263,8 @@
     <button class="swatch sw-sage"   data-accent="sage"    onclick="setAccent('sage')"    aria-label="Sage palette"></button>
     <button class="swatch sw-plum"   data-accent="plum"    onclick="setAccent('plum')"    aria-label="Plum palette"></button>
   </div>
+
+  <div id="clock" onclick="toggleClockMode()" title="Tap to switch date / time">--:--</div>
 
   <h1>POMODORO</h1>
   <div class="modes">
@@ -822,6 +839,34 @@
       if (mode === 'break' && timer) setMusicOn(this.checked);
     });
   })();
+  // ============================================================
+  //  DIGITAL CLOCK — top-left, tap to toggle time / date
+  // ============================================================
+  let clockShowDate = false; // start showing the time
+  try {
+    if (localStorage.getItem('pomo_clock') === 'date') clockShowDate = true;
+  } catch (e) {}
+
+  function toggleClockMode() {
+    clockShowDate = !clockShowDate;
+    try { localStorage.setItem('pomo_clock', clockShowDate ? 'date' : 'time'); } catch (e) {}
+    renderClock();
+  }
+
+  function renderClock() {
+    const now = new Date();
+    const el = document.getElementById('clock');
+    if (clockShowDate) {
+      el.textContent = now.toLocaleDateString(undefined,
+        { weekday: 'short', day: 'numeric', month: 'short' });
+    } else {
+      el.textContent = now.toLocaleTimeString(undefined,
+        { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+
+  renderClock();
+  setInterval(renderClock, 1000); // refresh every second
 
   // ============================================================
   //  INIT RENDER
