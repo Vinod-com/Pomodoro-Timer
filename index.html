@@ -598,11 +598,15 @@
   function settleRing() {
     const rw = document.getElementById('ringwrap');
     if (!rw.classList.contains('spinning')) return;
-    rw.addEventListener('animationiteration', function onStop() {
-      rw.removeEventListener('animationiteration', onStop);
-      if (!timer) rw.classList.remove('spinning');   // only halt if still paused
-    });
+    const anim = rw.getAnimations()[0];
+    if (!anim) { rw.classList.remove('spinning'); return; }
+    const dur = anim.effect.getTiming().duration;      // one full turn, in ms
+    const elapsed = anim.currentTime % dur;            // how far into the current turn we are
+    setTimeout(function() {
+      if (!timer) rw.classList.remove('spinning');     // only halt if still paused
+    }, dur - elapsed);                                 // exactly the leftover slice
   }
+
   function toggle() {
     unlockAudio();
     if (timer) {
