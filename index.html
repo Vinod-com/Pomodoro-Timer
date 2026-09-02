@@ -628,6 +628,8 @@
       if (mode === 'stopwatch') stopwatchStart = Date.now();
       startInterval(mode === 'stopwatch' ? 250 : 1000);
       document.getElementById('btn').textContent = 'Pause';
+      if (mode === 'break') document.getElementById('ringwrap').classList.add('spinning');
+      document.getElementById('ringwrap').classList.remove('spinning');
       render(); // show the time immediately, no 1s full-display lag
     }
   }
