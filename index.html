@@ -210,7 +210,8 @@
   #clock:hover { background: var(--surface2); transform: scale(1.05); }
 
   @media (max-width: 480px) {
-    #clock { top: 10px; left: 10px; padding: 6px 10px; font-size: 13px; }
+        #clock { top: auto; bottom: 14px; left: 10px; padding: 6px 10px; font-size: 13px; }
+
   }
 
   /* Pomodoro story tooltip */
@@ -861,7 +862,8 @@
         { weekday: 'short', day: 'numeric', month: 'short' });
     } else {
       el.textContent = now.toLocaleTimeString(undefined,
-        { hour: '2-digit', minute: '2-digit' });
+        { hour: 'numeric', minute: '2-digit', hour12: true });
+
     }
   }
 
