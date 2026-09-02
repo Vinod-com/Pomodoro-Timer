@@ -298,7 +298,7 @@
     <div id="phase">FOCUS</div>
   </div>
   <div class="controls">
-    <button id="btn" onclick="toggle()">Start</button>
+  <button id="btn" onclick="pauseProbe(); toggle()">Start</button>
     <button id="lapbtn" class="secondary" style="display:none" onclick="recordLap()">Lap</button>
     <button id="resetbtn" class="secondary" style="display:none" onclick="resetStopwatch()">Reset</button>
   </div>
@@ -875,6 +875,11 @@
   setFill(0);
   render();
   updateTitle();
+
+  function pauseProbe() {
+    alert('timer is: ' + timer);
+  }
+
 </script>
     <div class="pomodoro-info" tabindex="0">🍅
       <span class="pomodoro-tooltip">
