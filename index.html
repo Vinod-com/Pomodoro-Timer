@@ -595,7 +595,14 @@
   function savePaused() {
     countdownState[mode] = { total, remaining, wasRunning: false, pausedRemaining: remaining };
   }
-
+  function settleRing() {
+    const rw = document.getElementById('ringwrap');
+    if (!rw.classList.contains('spinning')) return;
+    rw.addEventListener('animationiteration', function onStop() {
+      rw.removeEventListener('animationiteration', onStop);
+      if (!timer) rw.classList.remove('spinning');   // only halt if still paused
+    });
+  }
   function toggle() {
     unlockAudio();
     if (timer) {
@@ -603,7 +610,7 @@
       else remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000));
       stopTimer();
       document.getElementById('btn').textContent = 'Start';
-      document.getElementById('ringwrap').classList.remove('spinning');
+      settleRing();
       updateTitle();
     } else {
       if (mode !== 'stopwatch') {
