@@ -1,72 +1,81 @@
-# PROMPT.md — Pomodoro Timer Project Context
+# VIBE PROMPT — "The Spinning Ring Pomodoro Timer"
 
-## Project
-Single-file `index.html` Pomodoro + Stopwatch web app (HTML + CSS + vanilla JS,
-no build tools, no dependencies). Deployed on GitHub Pages. Companion file:
-`break.mp3` (break music) in the repository root, next to `index.html`.
+## Vision
+Build a complete, single-file Pomodoro timer web app (one index.html containing
+HTML + CSS + JavaScript inline, no build tools, no external dependencies).
+The signature feature — the thing a user must remember it by — is a large
+ANIMATED RING that spins continuously during Break mode around the countdown
+digits. Design philosophy: never cut a motion off mid-sentence. All animations
+should finish gracefully and park (like a car windscreen wiper that completes
+its cycle before stopping, even when switched off mid-wipe).
 
-## Status: COMPLETE AND WORKING ✅
+## Core features
+1. THREE MODES: Focus (countdown), Break (countdown), Stopwatch (counts up).
+   - Mode selector tabs. Switching modes is only natural when fresh (not mid-session).
+   - Start/Pause single toggle button with label updating ("Start" / "Pause").
+2. FOCUS / BREAK COUNTDOWN:
+   - Configurable focus and break durations (default 25 min / 5 min).
+   - Drift-proof countdown: always compute remaining time from a wall-clock
+     target timestamp (endAt = Date.now() + remaining*1000), NEVER by counting
+     interval ticks. This keeps it accurate when the browser throttles the tab
+     in the background (critical on mobile).
+   - Phase-fresh logic: entering a paused 0-second phase auto-advances to the
+     next sensible phase before starting.
+3. THE RING:
+   - SVG or CSS ring around the digits. During Break it spins via a CSS
+     animation (class "spinning"). Spin must be SLOW enough that the countdown
+     digits remain readable as the ring passes them (~4–5s per rotation).
+   - FILL: the ring fills/depletes proportionally to the focus/break progress.
+   - PAUSE BEHAVIOUR (the wiper trick): when pausing during Break, the digits
+     freeze instantly, but the ring must COMPLETE ITS CURRENT ROTATION and then
+     park upright (digits readable). Implementation that works reliably on
+     mobile: attach ONE animationiteration listener to the ring element early
+     (arm once, e.g. via a dataset flag, the first time pause is pressed).
+     In the listener: if the timer is not running, remove the "spinning" class.
+     This guarantees the ring completes only the remaining part of the current
+     turn — never a bonus lap. If the user presses Start before the turn ends,
+     the guard (if (!timer)) lets the ring keep spinning with no stutter.
+   - Note: do NOT attempt to compute leftover rotation with getAnimations()/
+     currentTime — unreliable on mobile browsers. The armed event listener is
+     the bulletproof approach.
+4. SOUND:
+   - Tick sound each second in Focus mode (subtle, optional).
+   - Completion chime when a phase ends.
+   - Optional ambient BREAK MUSIC via <audio> element with a GENERATIVE
+     FALLBACK (Web Audio synthesized pad) if the audio file is missing — the
+     app must never break because an asset is absent.
+   - Music only plays during Break, only if the music toggle is checked, and
+     only while the timer is running.
+   - iOS/Safari: unlock AudioContext on the FIRST user tap (resume it inside
+     the first button press handler) or no sound will play on iPhone.
+5. LIVE CLOCK: current time (and optionally date) displayed on the page,
+   toggleable, positioned so it never collides with the ring on small screens.
+6. THEME: dark/light theme toggle + accent colour options. Persist all user
+   preferences AND completed-session count in localStorage.
+7. UI POLISH: session counter, phase label ("Focus"/"Break"), page title
+   showing remaining time while running, responsive layout for phone and
+   laptop, dark and light variants both fully readable.
 
-## Features
-- Three modes: Focus countdown, Break countdown, Stopwatch (with laps/splits)
-- Drift-proof countdown: uses `endAt = Date.now() + remaining * 1000`
-  (wall-clock target, immune to background-tab throttling)
-- Per-mode state preservation: switching Focus ↔ Stopwatch, not loses
-- Dark/light toggle (🌙/☀️), persisted to localStorage
-- 4 color palettes (Claude orange, Gemini blue, Sage green, Plum) via
-  `data-accent` + `data-theme` attributes on CSS variables
-- Tick sound toggle: soft 1200Hz square-wave click per second, deduped via
-  `lastWholeSec`
-- Break music: plays `break.mp3` via `<audio id="breakmusic">` element,
-  started in `advancePhase()` when entering break, stopped when leaving
-- Ring spin animation: on entering Break, the big circle continuously spins
-  like a turning coin (horizontal rotation, `rotateY`), via CSS class
-  `.ring-wrap.spinning` + `@keyframes spinNS` (one revolution every 6s;
-  adjust the `6s` value to change speed). Spin is removed on leaving break
-  or switching modes (`setMode()` toggles the class).
-- Persistence: theme, accent, durations, sessions count, tick/music toggles
-  saved to localStorage
-- Tab title countdown with ▶/⏸ indicators
-- PWA metas + SVG data-URI favicon
-- Zero-duration edge cases handled (auto-advance or clean stop)
+## Known pitfalls (learned the hard way — avoid these)
+- Duplicated closing tags/braces from partial edits can silently kill the
+  whole script — always verify brace/bracket balance after editing.
+- CSS class toggles control the animation; adding an already-present class
+  is harmless, so resume code needs no special-casing.
+- When testing, ALWAYS hard-refresh / use a fresh tab: stale cache will
+  masquerade as a bug (the "cache phantom").
+- Before reporting a bug, verify the observation carefully: a ring at 180°
+  shows mirrored digits and LOOKS like a full turn. The digits are the
+  truth-teller: mirrored = still mid-turn, upright = parked.
+- During the settle pause, digits freeze while the ring finishes its turn —
+  this brief mismatch is intentional (speedometer needle settling).
 
-## Key architecture points
-- Single shared AudioContext, created lazily via `getCtx()`, unlocked on
-  first user gesture via `unlockAudio()`
-- `setSessions()` is the single path for session count updates
-- `applyDurations()` pauses the timer on any duration edit (prevents stale
-  `endAt` overwriting the edit)
-- `savePaused()` stores countdown state per mode
-- `advancePhase()` removes/re-adds the `spinning` class on `#ringwrap` when
-  entering break
-- `setMode()` contains:
-  `document.getElementById('ringwrap').classList.toggle('spinning', mode === 'break');`
-
-## Fix history (chronological)
-1. Broken meta tag → fixed to `black-translucent`
-2. `let endAt = 0;` declaration
-3. `musicNodes` declared separately
-4. `splitToInputs('break', breakSecs)` typo fixed
-5. `startInterval`/`stopTimer` corruption repaired
-6. `setValueAtTime(0.0001, now)` in startMusic
-7. `setMusicOn(on)` calls `stopMusic()` when false
-8. `unlockAudio()` + tick/music toggle persistence added
-9. Sage dark theme selector scoped to `[data-theme="dark"]`
-10. Removed dead `saveCountdownState()` function
-11. `applyDurations()` calls `stopTimer()` on duration change
-12. Break music switched from generated pad to `break.mp3` file via
-    `<audio id="breakmusic" src="break.mp3" loop preload="auto">`
-13. Spin animation: replaced one-shot `flipNS`/`rotateX` flip with
-    continuous `spinNS`/`rotateY` (horizontal coin-spin), active only
-    during Break mode
-
-## Deployment notes
-- `index.html` and `break.mp3` both live in the TOP LEVEL of the repo
-- MP3 filename is case-sensitive on GitHub Pages: must be exactly
-  `break.mp3` (verified — not `break.mp3.mp3`)
-- Upload binary files (MP3) via Add file → Upload files; never paste them
-
-## User's workflow
-- Local file kept as `POMODORO-Timer Laptop 1Sep2026(1).txt`
-- Non-expert; prefers targeted find/replace snippets, NOT full-file resends
-- Update this PROMPT.md before requesting code changes
+## Acceptance test (run after building)
+1. Start Focus, digits count down, ring fills, title updates.
+2. Pause: digits freeze immediately, ring stays put, button reads "Start".
+3. Start Break: ring spins continuously, digits readable.
+4. Pause mid-spin: digits freeze, ring completes ONLY the remaining part of
+   the current turn, parks upright with readable digits.
+5. Quick Pause→Start within one rotation: ring never stops at all.
+6. Break completes: chime sounds, app advances to next phase.
+7. Reload page: preferences, theme, and session count persist.
+8. Everything above works on a phone browser (touch, small screen).
