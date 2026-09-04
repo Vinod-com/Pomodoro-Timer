@@ -23,6 +23,7 @@
     --bg: #faf9f5; --fg: #3d3929; --muted: #8f8779;
     --surface: #eeece2; --surface2: #e3e0d3; --border: #d9d5c6;
   }
+
   /* ---------- Accent palettes (swatches set data-accent) ---------- */
   :root[data-accent="claude"]   { --accent: #d97757; --accent-fg: #ffffff; }
   :root[data-theme="light"][data-accent="claude"] { --accent-fg: #141210; }
@@ -35,6 +36,13 @@
   :root[data-accent="plum"]     { --accent: #9d6bb5; --accent-fg: #ffffff; }
   :root[data-theme="light"][data-accent="plum"] { --bg: #f6f2f8; --fg: #463254; --muted: #8b7f94; --surface: #ece4f1; --surface2: #e0d4e9; --border: #d3c6de; }
   :root[data-accent="plum"][data-theme="dark"]  { --bg: #140f18; --fg: #e6dcea; --muted: #7d6f88; --surface: #201827; --surface2: #2c2137; --border: #382a46; }
+
+  :root[data-accent="gold"]     { --accent: #B8860B; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="gold"] { --bg: #FAF3E0; --fg: #6b4f08; --muted: #a3905f; --surface: #f1e6c8; --surface2: #e8d9b0; --border: #dccd9e; }
+  :root[data-accent="gold"][data-theme="dark"]  { --bg: #1F1A05; --fg: #FFD700; --muted: #9a8434; --surface: #2c2510; --surface2: #3d3319; --border: #4a3d1e; --accent: #FFD700; --accent-fg: #1F1A05; }
+  :root[data-accent="obsidian"] { --accent: #333333; --accent-fg: #ffffff; }
+  :root[data-theme="light"][data-accent="obsidian"] { --bg: #FFFFFF; --fg: #333333; --muted: #8a8a8a; --surface: #f2f2f2; --surface2: #e6e6e6; --border: #d9d9d9; }
+  :root[data-accent="obsidian"][data-theme="dark"]  { --bg: #0D0D0D; --fg: #D3D3D3; --muted: #7a7a7a; --surface: #1a1a1a; --surface2: #262626; --border: #333333; --accent: #D3D3D3; --accent-fg: #0D0D0D; }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -76,6 +84,8 @@
   .sw-gemini  { background: linear-gradient(135deg, #1a73e8 50%, #0f1620 50%); }
   .sw-sage    { background: linear-gradient(135deg, #4a9a6f 50%, #101613 50%); }
   .sw-plum    { background: linear-gradient(135deg, #9d6bb5 50%, #140f18 50%); }
+  .sw-gold     { background: linear-gradient(135deg, #6b4f08 50%, #FFD700 50%); }
+  .sw-obsidian { background: linear-gradient(135deg, #333333 50%, #D3D3D3 50%); }
 
   .modes { display: flex; gap: 20px; margin: 18px 0 14px; }
   .mode {
@@ -262,6 +272,9 @@
     <button class="swatch sw-gemini" data-accent="gemini"  onclick="setAccent('gemini')"  aria-label="Gemini blue palette"></button>
     <button class="swatch sw-sage"   data-accent="sage"    onclick="setAccent('sage')"    aria-label="Sage palette"></button>
     <button class="swatch sw-plum"   data-accent="plum"    onclick="setAccent('plum')"    aria-label="Plum palette"></button>
+    <button class="swatch sw-gold"     data-accent="gold"     onclick="setAccent('gold')"     aria-label="Gold palette"></button>
+    <button class="swatch sw-obsidian" data-accent="obsidian" onclick="setAccent('obsidian')" aria-label="Obsidian palette"></button>
+
   </div>
 
   <div id="clock" onclick="toggleClockMode()" title="Tap to switch date / time">--:--</div>
