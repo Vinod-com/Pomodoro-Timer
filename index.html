@@ -37,9 +37,9 @@
   :root[data-theme="light"][data-accent="plum"] { --bg: #f6f2f8; --fg: #463254; --muted: #8b7f94; --surface: #ece4f1; --surface2: #e0d4e9; --border: #d3c6de; }
   :root[data-accent="plum"][data-theme="dark"]  { --bg: #140f18; --fg: #e6dcea; --muted: #7d6f88; --surface: #201827; --surface2: #2c2137; --border: #382a46; }
 
-  :root[data-accent="gold"]     { --accent: #B8860B; --accent-fg: #ffffff; }
-  :root[data-theme="light"][data-accent="gold"] { --bg: #FAF3E0; --fg: #7a5c10; --muted: #99854a; --surface: #f0e4c4; --surface2: #e6d5a8; --border: #dac795; }
-  :root[data-accent="gold"][data-theme="dark"]  { --bg: #1F1A05; --fg: #DAA520; --muted: #93803a; --surface: #2c2510; --surface2: #3d3319; --border: #4a3d1e; --accent: #DAA520; --accent-fg: #1F1A05; }
+  :root[data-accent="gold"]     { --accent: #B8860B; --accent-fg: #1F1603; }
+  :root[data-theme="light"][data-accent="gold"] { --bg: #FAF3E0; --fg: #8A6418; --muted: #A8894F; --surface: #F4E7C2; --surface2: #E8D6A5; --border: #D5BB78; }
+  :root[data-accent="gold"][data-theme="dark"]  { --bg: #171205; --fg: #E0AE3A; --muted: #9A7A35; --surface: #241C08; --surface2: #34270B; --border: #4C3A12; --accent: #D4A72C; --accent-fg: #1F1603; }
 
   :root[data-accent="obsidian"] { --accent: #333333; --accent-fg: #ffffff; }
   :root[data-theme="light"][data-accent="obsidian"] { --bg: #E4E4E4; --fg: #2b2b2b; --muted: #7a7a7a; --surface: #d8d8d8; --surface2: #cccccc; --border: #bfbfbf; }
@@ -85,7 +85,7 @@
   .sw-gemini  { background: linear-gradient(135deg, #1a73e8 50%, #0f1620 50%); }
   .sw-sage    { background: linear-gradient(135deg, #4a9a6f 50%, #101613 50%); }
   .sw-plum    { background: linear-gradient(135deg, #9d6bb5 50%, #140f18 50%); }
-  .sw-gold    { background: linear-gradient(135deg, #7a5c10 50%, #DAA520 50%); }
+  .sw-gold    { background: linear-gradient(135deg, #8A6418 50%, #D4A72C 50%); }
   .sw-obsidian { background: linear-gradient(135deg, #2b2b2b 50%, #D3D3D3 50%); }
 
 
@@ -129,6 +129,33 @@
 
 .ring-wrap { position: relative; width: 260px; height: 260px; }
 
+  /* Sparkle field: two staggered layers of many tiny dots (box-shadow
+     trick — each shadow is one dot), positioned by JS around the ring's
+     gold band. Two layers with different timings avoid a single flat
+     unison pulse and instead read as scattered glinting light. */
+  .ring-wrap.sparkle::before,
+  .ring-wrap.sparkle::after {
+    content: ""; position: absolute; top: 50%; left: 50%;
+    width: 2px; height: 2px; margin: -1px 0 0 -1px; border-radius: 50%;
+    background: transparent; pointer-events: none; opacity: 0;
+  }
+  .ring-wrap.sparkle::before {
+    box-shadow: var(--sparkle-dots-a, none);
+    animation: sparkleTwinkleA 2.1s ease-in-out infinite;
+  }
+  .ring-wrap.sparkle::after {
+    box-shadow: var(--sparkle-dots-b, none);
+    animation: sparkleTwinkleB 2.7s ease-in-out infinite 0.55s;
+  }
+  @keyframes sparkleTwinkleA {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+  @keyframes sparkleTwinkleB {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.9; }
+  }
+
   .ring-wrap.flash { animation: flash 0.5s ease-in-out 4; }
   @keyframes flash { 50% { filter: drop-shadow(0 0 22px var(--accent)); } }
   svg { transform: rotate(-90deg); display: block; }
@@ -137,6 +164,34 @@
     fill: none; stroke: var(--accent); stroke-width: 12;
     stroke-linecap: butt; transition: stroke-dashoffset 0.5s linear;
   }
+  /* Gold palette: swap the flat accent fill for the metallic gradient
+     so the completed ring reads as a real gold bangle, not a solid
+     mustard band. Every other palette keeps its flat accent color. */
+  :root[data-accent="gold"] .fill {
+    stroke: url(#goldGradient);
+    filter: drop-shadow(0 0 3px rgba(255, 223, 140, 0.55));
+  }
+
+  /* ---------- 3D tube ring (break period only) ---------- */
+  #fillTube { visibility: hidden; }
+  .ring-wrap.ring3d #fill { visibility: hidden; }
+  .ring-wrap.ring3d #fillTube { visibility: visible; }
+  .tube-base {
+    fill: none; stroke: var(--accent); stroke-width: 15;
+    filter: brightness(0.5);
+  }
+  .tube-mid {
+    fill: none; stroke: var(--accent); stroke-width: 10;
+  }
+  .tube-hi {
+    fill: none; stroke: rgba(255, 255, 255, 0.4); stroke-width: 3;
+    stroke-linecap: round;
+  }
+  :root[data-accent="gold"] .tube-mid {
+    stroke: url(#goldGradient);
+    filter: drop-shadow(0 0 3px rgba(255, 223, 140, 0.5));
+  }
+  :root[data-accent="gold"] .tube-hi { stroke: rgba(255, 246, 214, 0.55); }
   #time {
     position: absolute; top: 46%; left: 50%;
     transform: translate(-50%, -50%);
@@ -305,9 +360,36 @@
   </div>
   <div class="ring-wrap" id="ringwrap">
     <svg width="260" height="260" viewBox="0 0 260 260" style="width:100%;height:100%">
+      <defs>
+        <!-- Diagonal light/shadow sweep so the gold ring reads as a
+             curved metal bangle catching light from one side, rather
+             than a flat-colored band. Only applied when the gold
+             palette is active (see .fill stroke rule below). -->
+        <linearGradient id="goldGradient" x1="15%" y1="0%" x2="85%" y2="100%">
+          <stop offset="0%"   stop-color="#EFCE7C"/>
+          <stop offset="18%"  stop-color="#DDAE45"/>
+          <stop offset="40%"  stop-color="#B4842A"/>
+          <stop offset="55%"  stop-color="#7A5814"/>
+          <stop offset="72%"  stop-color="#D4A340"/>
+          <stop offset="90%"  stop-color="#E9C978"/>
+          <stop offset="100%" stop-color="#DDAE45"/>
+        </linearGradient>
+      </defs>
       <circle class="track" cx="130" cy="130" r="118"/>
       <circle class="track" cx="130" cy="130" r="106"/>
       <circle class="fill" id="fill" cx="130" cy="130" r="112"/>
+      <!-- Three-dimensional version of the same ring, shown only while
+           the break is active (see .ring3d rule). Three concentric
+           strokes of decreasing width around the same centerline fake
+           a rounded tube: the widest/darkest layer peeks out on both
+           the inner and outer edge, the mid layer carries the gold
+           gradient, and a thin bright arc on top reads as a specular
+           glint running along the metal. -->
+      <g id="fillTube">
+        <circle class="tube-base" cx="130" cy="130" r="112"/>
+        <circle class="tube-mid"  cx="130" cy="130" r="112"/>
+        <circle class="tube-hi"   id="tubeHi" cx="130" cy="130" r="112"/>
+      </g>
     </svg>
     <div id="time">25:00</div>
     <div id="phase">FOCUS</div>
@@ -329,6 +411,70 @@
   const LEN_FILL = 2 * Math.PI * R_FILL;
   const fill = document.getElementById('fill');
   fill.style.strokeDasharray = LEN_FILL;
+
+  // Thin bright highlight arc on the 3D tube ring — roughly 16% of the
+  // circumference, left as a partial dash so it reads as one glint of
+  // light along the metal rather than a full second ring.
+  (function initTubeHighlight() {
+    const hi = document.getElementById('tubeHi');
+    if (!hi) return;
+    hi.style.strokeDasharray = (LEN_FILL * 0.16).toFixed(1) + ' ' + (LEN_FILL * 0.84).toFixed(1);
+  })();
+
+  // ============================================================
+  //  SPARKLE FIELD — many tiny box-shadow "dots" scattered mostly just
+  //  inside the ring's gold band, with fewer sitting right on the band
+  //  itself (r=96 to r=118 in the ring's own 260x260 SVG coordinate
+  //  space) and none floating past its outer edge. Two independent sets
+  //  feed the ::before/::after layers so they twinkle out of sync
+  //  instead of pulsing as one flat blob.
+  //
+  //  Positions are computed in real screen pixels (box-shadow can't
+  //  use SVG viewBox units), so they're scaled to match the ring's
+  //  *actual* rendered size — read live via clientWidth — rather than
+  //  assuming the 260px desktop size. A ResizeObserver regenerates the
+  //  field whenever that size changes (page load, window resize,
+  //  rotating a phone, an artifact preview pane resizing), so the
+  //  sparkles stay locked to the gold band on any screen instead of
+  //  drifting outside it when the ring renders larger or smaller than
+  //  the original design size.
+  // ============================================================
+  (function buildSparkleField() {
+    const ringWrap = document.getElementById('ringwrap');
+    if (!ringWrap) return;
+    const BASE = 260; // matches the SVG's own viewBox (0 0 260 260)
+    function makeDots(count, scale) {
+      const dots = [];
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        // Bias toward the inner side: most dots land well inside the
+        // circle, fewer sit right on the gold band, and none go past
+        // its outer edge (r=118) — no sparkles floating outside the ring.
+        const t = Math.pow(Math.random(), 1.8);
+        const radius = (96 + t * 22) * scale; // 96 (just inside the band) .. 118 (outer edge)
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const size = ((0.027 + Math.random() * 0.087) * scale).toFixed(2); // one-third of the previous size
+        const warm = Math.random() < 0.45;
+        const color = warm
+          ? `rgba(255, 250, 222, ${(0.65 + Math.random() * 0.35).toFixed(2)})`
+          : 'var(--accent)';
+        dots.push(`${x.toFixed(1)}px ${y.toFixed(1)}px 0 ${size}px ${color}`);
+      }
+      return dots.join(', ');
+    }
+    function regenerate() {
+      const scale = (ringWrap.clientWidth || BASE) / BASE;
+      ringWrap.style.setProperty('--sparkle-dots-a', makeDots(260, scale));
+      ringWrap.style.setProperty('--sparkle-dots-b', makeDots(260, scale));
+    }
+    regenerate();
+    if (window.ResizeObserver) {
+      new ResizeObserver(regenerate).observe(ringWrap);
+    } else {
+      window.addEventListener('resize', regenerate);
+    }
+  })();
 
   let mode = 'focus';                     // 'focus' | 'break' | 'stopwatch'
   let focusSecs = 25 * 60;
@@ -496,8 +642,15 @@
     const rw = document.getElementById('ringwrap');
     rw.classList.remove('spinning');
     if (mode === 'break') {
+      // Keep the completed focus ring filled throughout the break.
+      setFill(1);
+      setBreakVisuals(true);
       void rw.offsetWidth;
       rw.classList.add('spinning');
+    } else {
+      // A new focus cycle starts filling from zero again.
+      setBreakVisuals(false);
+      setFill(0);
     }
 
     setTab(mode);
@@ -518,6 +671,14 @@
   function setFill(fraction) {
     fraction = Math.max(0, Math.min(1, fraction));
     fill.style.strokeDashoffset = LEN_FILL * (1 - fraction);
+  }
+
+  // Turns the break-time visuals (sparkle field + 3D tube ring) on or
+  // off together, so every place that enters/leaves break stays in sync.
+  function setBreakVisuals(on) {
+    const rw = document.getElementById('ringwrap');
+    rw.classList.toggle('sparkle', on);
+    rw.classList.toggle('ring3d', on);
   }
 
   function startInterval(ms) {
@@ -568,7 +729,9 @@
     stopTimer();
     mode = name;
     setTab(name);
-    document.getElementById('ringwrap').classList.toggle('spinning', mode === 'break');
+    const ringWrap = document.getElementById('ringwrap');
+    ringWrap.classList.toggle('spinning', mode === 'break');
+    setBreakVisuals(mode === 'break');
 
 
     if (mode === 'stopwatch') {
@@ -643,7 +806,14 @@
           }
           total = (mode === 'focus') ? focusSecs : breakSecs;
           remaining = total;
-          setFill(0);
+          const rw = document.getElementById('ringwrap');
+          if (mode === 'focus') {
+            setFill(0);
+            setBreakVisuals(false);
+          } else {
+            setFill(1);
+            setBreakVisuals(true);
+          }
           phaseFresh = false;
         }
         endAt = Date.now() + remaining * 1000; // drift-proof target
@@ -685,7 +855,14 @@
     const m = String(Math.floor(remaining / 60)).padStart(2, '0');
     const s = String(remaining % 60).padStart(2, '0');
     document.getElementById('time').textContent = m + ':' + s;
-    setFill(total > 0 ? (total - remaining) / total : 0);
+    if (mode === 'focus') {
+      setFill(total > 0 ? (total - remaining) / total : 0);
+    } else if (mode === 'break') {
+      // The completed focus fill remains visible and rotates during the break.
+      setFill(1);
+    } else {
+      setFill(0);
+    }
     updateTitle();
   }
 
