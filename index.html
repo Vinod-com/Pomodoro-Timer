@@ -280,38 +280,100 @@
           #clock { top: auto; bottom: 130px; left: 50%; transform: translateX(-50%); padding: 6px 10px; font-size: 13px; }
   }
 
-  /* Pomodoro story tooltip */
+  /* Pomodoro story tooltip — trigger now lives inline inside the H1,
+     replacing the first "O" of POMODORO, so it's always visible near
+     the top of the screen instead of easy to miss at the page's end. */
   .pomodoro-info {
     position: relative;
     display: inline-block;
-    font-size:22px;
     cursor: help;
     user-select: none;
-    margin: 18px 0 10px;
     z-index: 5;
+    font-size: 0.85em;      /* emoji render visually larger than a capital letter at the same size */
+    letter-spacing: 0;      /* don't inherit the H1's wide letter-spacing inside the glyph itself */
+    margin-right: 5px;      /* replaces the trailing gap letter-spacing:0 removed, so the gap after matches the gap before (from the H1's letter-spacing after "P") */
+    vertical-align: 0.1em;  /* lifts the tomato up so its bottom lines up with the letters' baseline */
   }
   .pomodoro-tooltip {
-    position: absolute;
-    bottom: 130%;
+    position: fixed;        /* centers on the actual viewport, not the tiny inline tomato glyph — */
+    top: 92px;              /* avoids the inconsistent containing-block math that pushed it off-center on narrow screens */
     left: 50%;
     transform: translateX(-50%);
-    width: 280px;
-    max-height: 60vh;
-    overflow-y: auto;
-    background: #222;
-    color: #eee;
-    border: 1px solid #555;
-    border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 13px;
-    line-height: 1.5;
-    text-align: left;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    width: 300px;
+    max-width: calc(100vw - 24px);
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s;
     z-index: 20;
   }
+  /* Wooden rod caps top and bottom, sitting half-in / half-out of the
+     parchment edge, giving the popup the look of an unrolled scroll
+     rather than a plain box. The small dark "knobs" at each end are
+     just radial-gradients layered on the linear wood-grain gradient —
+     no image assets needed. Kept on this outer wrapper (not the
+     scrollable panel below) so they aren't clipped by its overflow. */
+  .pomodoro-tooltip::before,
+  .pomodoro-tooltip::after {
+    content: "";
+    position: absolute;
+    left: -10px;
+    right: -10px;
+    height: 13px;
+    border-radius: 7px;
+    background:
+      radial-gradient(circle at 5px 50%, #4a2f14 0 5px, transparent 6px),
+      radial-gradient(circle at calc(100% - 5px) 50%, #4a2f14 0 5px, transparent 6px),
+      linear-gradient(180deg, #9c6b3a, #5c3b1e);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    z-index: 2;
+  }
+  .pomodoro-tooltip::before { top: -7px; }
+  .pomodoro-tooltip::after  { bottom: -7px; }
+  .tooltip-content {
+    display: block;
+    max-height: 60vh;
+    overflow-y: auto;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(139, 101, 54, 0.10), transparent 55%),
+      radial-gradient(circle at 82% 78%, rgba(139, 101, 54, 0.10), transparent 55%),
+      linear-gradient(to bottom, rgba(0,0,0,0.14), transparent 22px),
+      linear-gradient(135deg, #f6e8c8 0%, #ecd9a8 45%, #f2e2b8 75%, #e6d09c 100%);
+    color: #1c1006;
+    border: 1px solid #c9a765;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.55;
+    text-align: left;
+    box-shadow: 0 10px 26px rgba(50, 32, 8, 0.45);
+  }
+  .tooltip-content b { color: #150b04; }
+  /* Custom scrollbar to browse the full story, styled to match the
+     wood/parchment palette instead of the browser's default gray bar. */
+  .tooltip-content::-webkit-scrollbar { width: 8px; }
+  .tooltip-content::-webkit-scrollbar-track {
+    background: rgba(139, 101, 54, 0.15);
+    border-radius: 6px;
+  }
+  .tooltip-content::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #9c6b3a, #5c3b1e);
+    border-radius: 6px;
+  }
+  /* Without these, Chrome/Edge fall back to a plain gray thumb on
+     hover/active instead of keeping the wood-gradient look. */
+  .tooltip-content::-webkit-scrollbar-thumb:hover,
+  .tooltip-content::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #9c6b3a, #5c3b1e);
+  }
+  /* Deliberately NOT setting scrollbar-color/scrollbar-width here.
+     Chrome now supports that standardized approach alongside the
+     ::-webkit-scrollbar-* pseudo-elements above, and when both are
+     present it can fall back to its own built-in hover-darkening for
+     the scrollbar thumb — which that newer spec doesn't let CSS
+     override at all. Leaving only the -webkit pseudo-elements keeps
+     our custom hover/active colors in full control on Chrome/Edge.
+     Firefox (which never supported ::-webkit-scrollbar) will just show
+     its plain default scrollbar here instead of the wood theme. */
   .pomodoro-info:hover .pomodoro-tooltip,
   .pomodoro-info:focus .pomodoro-tooltip {
     opacity: 1;
@@ -336,7 +398,24 @@
 
   <div id="clock" onclick="toggleClockMode()" title="Tap to switch date / time">--:--</div>
 
-  <h1>POMODORO</h1>
+  <h1>P<span class="pomodoro-info" tabindex="0">🍅
+      <span class="pomodoro-tooltip"><span class="tooltip-content">
+        <b>Pomodoro — The Tomato Timer 🍅</b><br><br>
+        "Pomodoro" is the Italian word for tomato. The technique was invented in the late 1980s by Francesco Cirillo, a university student in Italy who was struggling to focus on his studies.<br><br>
+        One day he grabbed a kitchen timer shaped like a tomato — the kind you twist to count down while cooking — and challenged himself to focus for just 10 minutes without distraction. It worked so well that he turned it into a full productivity system and named it after the tomato timer itself.<br><br>
+        <b>The technique in a nutshell</b><br>
+        1. Pick a task and set the timer for 25 minutes<br>
+        2. Work with full focus until the timer rings — no interruptions<br>
+        3. Take a 5-minute break (this is the "Break" mode in this app!)<br>
+        4. After four Pomodoros, take a longer break of 15–30 minutes<br>
+        5. Repeat<br><br>
+        The genius of it: 25 minutes feels short enough that your brain doesn't resist starting — the hard part of any task is often just beginning, and "I only have to do one Pomodoro" makes starting easy.<br><br>
+        <b>This app is a faithful implementation:</b><br>
+        • Focus mode = the 25-minute work sprint<br>
+        • Break mode (with the spinning ring and music!) = the 5-minute rest<br>
+        • The "Sessions completed" counter = tracking your Pomodoros
+      </span></span>
+    </span>MODORO</h1>
   <div class="modes">
     <button class="mode active" id="tab-focus" onclick="setMode('focus')">Focus</button>
     <button class="mode" id="tab-break" onclick="setMode('break')">Break</button>
@@ -454,7 +533,7 @@
         const radius = (96 + t * 22) * scale; // 96 (just inside the band) .. 118 (outer edge)
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
-        const size = ((0.027 + Math.random() * 0.087) * scale).toFixed(2); // one-third of the previous size
+        const size = ((0.015 + Math.random() * 0.05) * scale).toFixed(2); // smaller still, and denser below
         const warm = Math.random() < 0.45;
         const color = warm
           ? `rgba(255, 250, 222, ${(0.65 + Math.random() * 0.35).toFixed(2)})`
@@ -465,8 +544,8 @@
     }
     function regenerate() {
       const scale = (ringWrap.clientWidth || BASE) / BASE;
-      ringWrap.style.setProperty('--sparkle-dots-a', makeDots(260, scale));
-      ringWrap.style.setProperty('--sparkle-dots-b', makeDots(260, scale));
+      ringWrap.style.setProperty('--sparkle-dots-a', makeDots(380, scale));
+      ringWrap.style.setProperty('--sparkle-dots-b', makeDots(380, scale));
     }
     regenerate();
     if (window.ResizeObserver) {
@@ -1079,24 +1158,6 @@
   updateTitle();
 
 </script>
-    <div class="pomodoro-info" tabindex="0">🍅
-      <span class="pomodoro-tooltip">
-        <b>Pomodoro — The Tomato Timer 🍅</b><br><br>
-        "Pomodoro" is the Italian word for tomato. The technique was invented in the late 1980s by Francesco Cirillo, a university student in Italy who was struggling to focus on his studies.<br><br>
-        One day he grabbed a kitchen timer shaped like a tomato — the kind you twist to count down while cooking — and challenged himself to focus for just 10 minutes without distraction. It worked so well that he turned it into a full productivity system and named it after the tomato timer itself.<br><br>
-        <b>The technique in a nutshell</b><br>
-        1. Pick a task and set the timer for 25 minutes<br>
-        2. Work with full focus until the timer rings — no interruptions<br>
-        3. Take a 5-minute break (this is the "Break" mode in this app!)<br>
-        4. After four Pomodoros, take a longer break of 15–30 minutes<br>
-        5. Repeat<br><br>
-        The genius of it: 25 minutes feels short enough that your brain doesn't resist starting — the hard part of any task is often just beginning, and "I only have to do one Pomodoro" makes starting easy.<br><br>
-        <b>This app is a faithful implementation:</b><br>
-        • Focus mode = the 25-minute work sprint<br>
-        • Break mode (with the spinning ring and music!) = the 5-minute rest<br>
-        • The "Sessions completed" counter = tracking your Pomodoros
-      </span>
-    </div>
 
 </body>
 </html>
