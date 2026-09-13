@@ -1,4 +1,4 @@
-[PROMPT.md](https://github.com/user-attachments/files/32141825/PROMPT.md)
+[PROMPT.md](https://github.com/user-attachments/files/32163018/PROMPT.md)
 # Pomodoro Timer App — Project Record
 
 ## Overview
@@ -59,9 +59,16 @@ programmer, with an AI assistant as coding partner.
 - Adjustable theme: dark/light toggle (🌙 button) + six color palettes
 - Clock display area (--:--) that toggles between date and time on tap
   (toggleClockMode)
-- Story feature: a 🍅 at the bottom of the page — click (or hover) to open a
-  scrollable card telling the history of the Pomodoro technique
-  (Francesco Cirillo, 1980s, the tomato kitchen timer)
+- Story feature: the 🍅 trigger lives *inside the H1 title*, replacing the
+  first "O" of POMODORO (`P🍅MODORO`) — click/tap (or hover) opens a
+  parchment-scroll popup (see "Story popup — parchment scroll design"
+  below) telling the history of the Pomodoro technique (Francesco
+  Cirillo, 1980s, the tomato kitchen timer). Originally a separate
+  element at the very bottom of the page; moved after a user's
+  iPhone-using friend found it easy to miss/hard to tap down there. Living
+  inside the title guarantees it's always visible near the top, with no
+  scrolling, and doubles as a self-explanatory visual pun (Pomodoro =
+  Italian for tomato)
 - Persisted preferences: chosen theme and accent survive page reloads
 - Completion flash: when a phase ends, the ring flashes (glow pulse, 4
   iterations at 0.5s each) before settling into the next phase's visual
@@ -181,6 +188,55 @@ programmer, with an AI assistant as coding partner.
 - Color mix: ~45% of dots use a warm near-white `rgba(255,250,222,…)`
   for glint variety, the rest use `var(--accent)`.
 
+## Story popup — parchment scroll design
+- Originally a plain dark box (`#222` background, light gray text).
+  Rebuilt as a warm parchment scroll — entirely CSS gradients, no image
+  asset, keeping the single-file/no-dependencies rule intact.
+- **Two-element structure, not one.** `.pomodoro-tooltip` (outer) only
+  handles positioning and the decorative wooden rod caps.
+  `.tooltip-content` (inner, nested inside it) holds the parchment
+  background, ink-colored text, padding, and `max-height` +
+  `overflow-y: auto` for scrolling. They must stay separate: the rod
+  caps intentionally sit half outside the box edges, and if they were on
+  the same element as `overflow-y: auto`, that overflow would clip them
+  off.
+- **Wooden rod caps:** `.pomodoro-tooltip::before`/`::after`, each a
+  short rounded bar with a wood-grain `linear-gradient`, plus two small
+  darker "knob" circles at its ends made from `radial-gradient`s layered
+  into the same background — no separate elements needed for the knobs.
+- **Parchment background:** a diagonal cream/tan `linear-gradient` with
+  two faint `radial-gradient` "age stain" blooms, plus a soft dark
+  gradient right at the top to suggest the paper curving under the rod.
+- **Text color** went through two rounds of "darker, please" feedback:
+  body text `#4a3218` → `#2e1c0c` → final `#1c1006`; bold headings
+  `#6b4620` → `#24140a` → final `#150b04`.
+- **Custom scrollbar:** `::-webkit-scrollbar` / `-track` / `-thumb` on
+  `.tooltip-content`, styled in the same wood-gradient tones as the rods,
+  with explicit `:hover`/`:active` rules on the thumb too — without
+  those, Chrome substitutes its own gray tone on hover. Deliberately
+  **not** using the newer standardized `scrollbar-color`/`scrollbar-width`
+  properties here: modern Chrome supports both systems, and having both
+  present on one element let Chrome's built-in hover-darkening for
+  `scrollbar-color` win over the explicit `::-webkit-scrollbar-thumb:hover`
+  rule — a spec limitation, not something CSS can override once that
+  path is active. Dropping the standardized properties and keeping only
+  the `-webkit` pseudo-elements fixed it (Firefox, which never supported
+  `::-webkit-scrollbar`, just shows its own default scrollbar here now —
+  an accepted trade-off).
+- **Centering fix:** originally `position: absolute` on `.pomodoro-tooltip`,
+  anchored to the tiny inline `.pomodoro-info` (tomato) span via
+  `left: 50%; transform: translateX(-50%)`. This centered fine on
+  desktop but drifted left on narrow/mobile screens. Root cause: when the
+  nearest positioned ancestor of an absolutely-positioned element is
+  itself an *inline* element, browsers can be inconsistent about what
+  width they use for that percentage math — especially once the anchor's
+  rendered size shifts at a different breakpoint. Fixed by switching to
+  `position: fixed` with `top: 92px; left: 50%; transform: translateX(-50%)`
+  and `max-width: calc(100vw - 24px)`, centering on the actual viewport
+  instead of the glyph, which sidesteps the whole inline-containing-block
+  question and only depends on the fixed value being placed correctly
+  once, not accurately tracking the H1's position on every device.
+
 ## `setBreakVisuals(on)` helper
 - The sparkle field and the 3D tube ring must always turn on and off
   together with Break mode. Rather than toggling two CSS classes
@@ -230,6 +286,29 @@ you add its own gradient the same way.)
   units bug, not a code-branch difference (there is only ever one file):
   box-shadow px vs. SVG viewBox units. Fixed with a live clientWidth-based
   scale factor plus a ResizeObserver — see "Sparkle field" above
+- Tomato story trigger relocated from a standalone element at the bottom
+  of the page to inline inside the H1, replacing the first "O". Three
+  details had to change together: the tooltip's popup direction flipped
+  from opening upward (`bottom: 130%`) to opening downward (`top: 130%`),
+  since the trigger now sits at the top of the screen, not the bottom;
+  `vertical-align` needed a *positive* value (0.1em) to lift the emoji up
+  to the letters' baseline — emoji glyphs carry built-in space below them
+  that makes a naive 0 or negative vertical-align sit too low; and the
+  H1's letter-spacing (5px) only adds a gap *after* each character, so
+  giving the trigger span `letter-spacing: 0` (needed to stop the emoji
+  itself from stretching) also silently removed the gap that would have
+  followed it before the next letter — fixed with an explicit
+  `margin-right: 5px` on the span to restore that missing gap and center
+  the tomato between the letters on either side
+- Story popup mobile mis-centering — traced to `position: absolute`
+  anchored on an inline element misbehaving on narrow screens; fixed by
+  switching to viewport-relative `position: fixed`. See "Story popup —
+  parchment scroll design" above for the full explanation
+- Scrollbar hover reverting to browser-default gray — traced to modern
+  Chrome's standardized `scrollbar-color` property silently overriding
+  the explicit `::-webkit-scrollbar-thumb:hover` color; fixed by only
+  using the `-webkit` pseudo-element system, not both. See "Story popup"
+  above
 
 ## Editing workflow
 Edit locally in Notepad → Ctrl+S (plain, never Save As, to preserve
@@ -258,3 +337,18 @@ Open with → Notepad edits it.
   3D ring), give them one shared toggle function rather than duplicating
   the pair of class names at every call site — it's the only way to
   guarantee they can't drift out of sync as the code grows
+- letter-spacing on a parent element only adds space *after* each
+  character/inline box, not before — so zeroing it on a child inline
+  element (to stop that child's own content from stretching) can silently
+  remove a gap the surrounding layout was relying on. Worth checking both
+  sides whenever letter-spacing and an embedded inline element mix
+- An absolutely-positioned element anchored to an *inline* ancestor can
+  behave inconsistently across screen sizes — when true screen-relative
+  centering is wanted, `position: fixed` against the viewport is more
+  robust than `position: absolute` against a small inline anchor
+- When both the legacy `::-webkit-scrollbar` pseudo-elements and the
+  newer standardized `scrollbar-color`/`scrollbar-width` properties are
+  set on the same element, Chrome can let its own built-in hover
+  behavior from the newer system win — even when the older pseudo-element
+  hover state is explicitly styled. Pick one system, not both, if a
+  custom hover color actually matters
